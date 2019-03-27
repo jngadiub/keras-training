@@ -33,7 +33,8 @@ if __name__ == "__main__":
     yamlConfig = parse_config(options.config)
 
     if os.path.isdir(options.outputDir):
-        raise Exception('output directory must not exists yet')
+        #raise Exception('output directory must not exists yet')
+        raw_input("Warning: output directory exists. Press Enter to continue...")
     else:
         os.mkdir(options.outputDir)    
 
@@ -42,7 +43,10 @@ if __name__ == "__main__":
     model_constraint = getattr(models, yamlConfig['KerasModelRetrain'])
 
     # Instantiate new model with added custom constraints
-    keras_model = model_constraint(Input(shape=X_train_val.shape[1:]), y_train_val.shape[1], l1Reg=yamlConfig['L1Reg'], h5fName = options.dropWeights )
+    if 'L1RegR' in yamlConfig:
+        keras_model = model_constraint(Input(shape=X_train_val.shape[1:]), y_train_val.shape[1], l1Reg=yamlConfig['L1Reg'], l1RegR=yamlConfig['L1RegR'], h5fName = options.dropWeights )
+    else:
+        keras_model = model_constraint(Input(shape=X_train_val.shape[1:]), y_train_val.shape[1], l1Reg=yamlConfig['L1Reg'], h5fName = options.dropWeights )
 
     print_model_to_json(keras_model,options.outputDir + '/' + 'KERAS_model.json')
         

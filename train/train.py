@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import keras
@@ -19,7 +20,7 @@ import models
 # To turn off GPU
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 def print_model_to_json(keras_model, outfile_name):
-    outfile = open(outfile_name,'wb')
+    outfile = open(outfile_name,'w')
     jsonString = keras_model.to_json()
     import json
     with outfile:
@@ -42,31 +43,37 @@ def get_features(options, yamlConfig):
     labels = yamlConfig['Labels']
 
     # Convert to dataframe
-    features_df = pd.DataFrame(treeArray,columns=features)
-    labels_df = pd.DataFrame(treeArray,columns=labels)
+    features_labels_df = pd.DataFrame(treeArray,columns=list(set(features+labels)))
+    features_labels_df = features_labels_df.drop_duplicates()
+
+    features_df = features_labels_df[features]
+    labels_df = features_labels_df[labels]
+    
     if 'Conv' in yamlConfig['InputType']:
         labels_df = labels_df.drop_duplicates()
         
     # Convert to numpy array 
     features_val = features_df.values
     labels_val = labels_df.values     
-    if 'Conv' in yamlConfig['InputType']:
-        labels_val = labels_val[:,:-1] # drop the last label j_pt
+
+    if 'j_index' in features:
+        features_val = features_val[:,:-1] # drop the j_index feature
+    if 'j_index' in labels:
+        labels_val = labels_val[:,:-1] # drop the j_index label
         print(labels_val.shape)
 
     if yamlConfig['InputType']=='Conv1D':
         features_2dval = np.zeros((len(labels_df), yamlConfig['MaxParticles'], len(features)-1))
         for i in range(0, len(labels_df)):
-            features_df_i = features_df[features_df['j_pt']==labels_df['j_pt'].iloc[i]]
+            features_df_i = features_df[features_df['j_index']==labels_df['j_index'].iloc[i]]
             index_values = features_df_i.index.values
-            #features_val_i = features_val[index_values[0]:index_values[-1]+1,:-1] # drop the last feature j_pt
-            features_val_i = features_val[np.array(index_values),:-1] # drop the last feature j_pt
+            #features_val_i = features_val[index_values[0]:index_values[-1]+1,:-1] # drop the last feature j_index
+            features_val_i = features_val[np.array(index_values),:]
             nParticles = len(features_val_i)
             if nParticles>yamlConfig['MaxParticles']:
                 features_val_i =  features_val_i[0:yamlConfig['MaxParticles'],:]
             else:        
                 features_val_i = np.concatenate([features_val_i, np.zeros((yamlConfig['MaxParticles']-nParticles, len(features)-1))])
-                
             features_2dval[i, :, :] = features_val_i
 
         features_val = features_2dval
@@ -74,7 +81,7 @@ def get_features(options, yamlConfig):
     elif yamlConfig['InputType']=='Conv2D':
         features_2dval = np.zeros((len(labels_df), yamlConfig['BinsX'], yamlConfig['BinsY'], 1))
         for i in range(0, len(labels_df)):
-            features_df_i = features_df[features_df['j_pt']==labels_df['j_pt'].iloc[i]]
+            features_df_i = features_df[features_df['j_index']==labels_df['j_index'].iloc[i]]
             index_values = features_df_i.index.values
             
             xbins = np.linspace(yamlConfig['MinX'],yamlConfig['MaxX'],yamlConfig['BinsX']+1)
@@ -115,7 +122,7 @@ def get_features(options, yamlConfig):
             X_train_val[:,p,:] = scaler.transform(X_train_val[:,p,:])
             X_test[:,p,:] = scaler.transform(X_test[:,p,:])    
 
-    if 'Conv' in yamlConfig['InputType']:
+    if 'j_index' in labels:
         labels = labels[:-1]
 
     return X_train_val, X_test, y_train_val, y_test, labels
@@ -123,7 +130,7 @@ def get_features(options, yamlConfig):
 ## Config module
 def parse_config(config_file) :
 
-    print "Loading configuration from " + str(config_file)
+    print("Loading configuration from", config_file)
     config = open(config_file, 'r')
     return yaml.load(config)
 
@@ -138,7 +145,8 @@ if __name__ == "__main__":
     yamlConfig = parse_config(options.config)
     
     if os.path.isdir(options.outputDir):
-        raise Exception('output directory must not exists yet')
+        #raise Exception('output directory must not exist yet')
+        raw_input("Warning: output directory exists. Press Enter to continue...")
     else:
         os.mkdir(options.outputDir)
 
@@ -146,8 +154,10 @@ if __name__ == "__main__":
     
     #from models import three_layer_model
     model = getattr(models, yamlConfig['KerasModel'])    
-
-    keras_model = model(Input(shape=X_train_val.shape[1:]), y_train_val.shape[1], l1Reg=yamlConfig['L1Reg'] )
+    if 'L1RegR' in yamlConfig:
+        keras_model = model(Input(shape=X_train_val.shape[1:]), y_train_val.shape[1], l1Reg=yamlConfig['L1Reg'], l1RegR=yamlConfig['L1RegR'] )
+    else:
+        keras_model = model(Input(shape=X_train_val.shape[1:]), y_train_val.shape[1], l1Reg=yamlConfig['L1Reg'] )
 
     print_model_to_json(keras_model,options.outputDir + '/' + 'KERAS_model.json')
 

@@ -15,8 +15,8 @@ Labels:
     - j_t
     - j_index
     
-KerasModel: lstm_model
-KerasModelRetrain: lstm_model_constraint
+KerasModel: gru_model
+KerasModelRetrain: gru_model_constraint
 KerasLoss: categorical_crossentropy
 L1Reg: 0.0001
 L1RegR: 0.001
