@@ -146,11 +146,13 @@ if __name__ == "__main__":
         your_percentile = options.relative_weight_percentile
     else:
         your_percentile = stats.percentileofscore(allWeightsArray, relative_weight_max)
+
     #percentiles = [5,16,50,84,95,your_percentile]
     percentiles = [5,95,your_percentile]
     #colors = ['r','r','r','r','r','g']
     colors = ['r','r','g']
     vlines = np.percentile(allWeightsArray,percentiles,axis=-1)
+    percentiles[2] = 100.*float(totalDropped)/model.count_params()
     xmin = np.amin(allWeightsArray[np.nonzero(allWeightsArray)])
     xmax = np.amax(allWeightsArray)
     xmin = 6e-8
@@ -168,10 +170,10 @@ if __name__ == "__main__":
         if percentile==0: continue
         if vline < xmin: continue
         plt.axvline(vline, 0, 1, color=color, linestyle='dashed', linewidth=1, label = '%s%%'%percentile)
-        plt.text(vline, ymax+0.01*(ymax-ymin), '%s%%'%percentile, color=color, horizontalalignment='center')
+        plt.text(vline, ymax+0.01*(ymax-ymin), '%.1f%%'%percentile, color=color, horizontalalignment='center')
     plt.ylabel('Number of Weights')
     plt.xlabel('Absolute Relative Weights')
-    plt.savefig(options.outputModel.replace('.h5','_weight_histogram.pdf'))
+    #plt.savefig(options.outputModel.replace('.h5','_weight_histogram.pdf'))
 
         
     plt.figure()
@@ -192,7 +194,7 @@ if __name__ == "__main__":
         #if plotPercentile16 and percentile==95:
         #    xAdd=1.2
         plt.axvline(vline, 0, 1, color=color, linestyle='dashed', linewidth=1, label = '%s%%'%percentile)
-        plt.text(vline+xAdd, ymax+0.01*(ymax-ymin)+yAdd, '%s%%'%percentile, color=color, horizontalalignment='center')
+        plt.text(vline+xAdd, ymax+0.01*(ymax-ymin)+yAdd, '%.1f%%'%percentile, color=color, horizontalalignment='center')
     plt.ylabel('Number of Weights')
     plt.xlabel('Absolute Relative Weights')
     plt.figtext(0.25, 0.90,'hls4ml',fontweight='bold', wrap=True, horizontalalignment='right', fontsize=14)
@@ -213,4 +215,4 @@ if __name__ == "__main__":
     plt.xlabel('Absolute Value of Weights')
     plt.figtext(0.25, 0.90,'hls4ml',fontweight='bold', wrap=True, horizontalalignment='right', fontsize=14)
     #plt.figtext(0.35, 0.90,'preliminary', style='italic', wrap=True, horizontalalignment='center', fontsize=14) 
-    plt.savefig(options.outputModel.replace('.h5','_weight_nonrel_histogram_logx.pdf'))
+    #plt.savefig(options.outputModel.replace('.h5','_weight_nonrel_histogram_logx.pdf'))

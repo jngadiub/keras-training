@@ -32,8 +32,8 @@ def get_features(options, yamlConfig):
     h5File = h5py.File(options.inputFile)
     treeArray = h5File[options.tree][()]
 
-    print treeArray.shape
-    print treeArray.dtype.names
+    print(treeArray.shape)
+    print(treeArray.dtype.names)
     
     # List of features to use
     features = yamlConfig['Inputs']
@@ -52,7 +52,7 @@ def get_features(options, yamlConfig):
     labels_val = labels_df.values     
     if 'Conv' in yamlConfig['InputType']:
         labels_val = labels_val[:,:-1] # drop the last label j_pt
-        print labels_val.shape
+        print(labels_val.shape)
 
     if yamlConfig['InputType']=='Conv1D':
         features_2dval = np.zeros((len(labels_df), yamlConfig['MaxParticles'], len(features)-1))
@@ -164,5 +164,5 @@ if __name__ == "__main__":
                             lr_minimum=0.0000001,
                             outputDir=options.outputDir)
 
-    keras_model.fit(X_train_val, y_train_val, batch_size = 1024, epochs = 100,
+    keras_model.fit(X_train_val, y_train_val, batch_size = 1024, epochs = 500,
                     validation_split = 0.25, shuffle = True, callbacks = callbacks.callbacks)

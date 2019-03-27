@@ -25,6 +25,8 @@ import yaml
 from train import parse_config, get_features
 from quantized_layers import Clip, BinaryDense, TernaryDense, QuantizedDense
 from models import binary_tanh, ternary_tanh, quantized_relu
+from keras.models import load_model, Model, model_from_json
+from keras.utils import plot_model
 
 # To turn off GPU
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
@@ -131,7 +133,6 @@ if __name__ == "__main__":
 
     X_train_val, X_test, y_train_val, y_test, labels  = get_features(options, yamlConfig)
 
-
     model = load_model(options.inputModel, custom_objects={'ZeroSomeWeights':ZeroSomeWeights,
                                                            'BinaryDense': BinaryDense,
                                                            'TernaryDense': TernaryDense,
@@ -140,6 +141,23 @@ if __name__ == "__main__":
                                                            'ternary_tanh': ternary_tanh,
                                                            'quantized_relu': quantized_relu,
                                                            'Clip': Clip})
+    '''
+    json_file = open(options.inputModel.replace('_weights.h5','.json'),'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model = model_from_json(loaded_model_json,{'ZeroSomeWeights':ZeroSomeWeights,
+                                                           'BinaryDense': BinaryDense,
+                                                           'TernaryDense': TernaryDense,
+                                                           'QuantizedDense': QuantizedDense,
+                                                           'binary_tanh': binary_tanh,
+                                                           'ternary_tanh': ternary_tanh,
+                                                           'quantized_relu': quantized_relu,
+                                                           'Clip': Clip})
+    model.load_weights(options.inputModel)
+    '''
+
+    plot_model(model,show_shapes=1,to_file=options.outputDir+'/model.pdf')
+    model.summary()
 
     y_predict = makeRoc(X_test, labels, y_test, model, options.outputDir)
     y_test_proba = y_test.argmax(axis=1)

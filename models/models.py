@@ -74,26 +74,54 @@ def three_layer_model(Inputs, nclasses, l1Reg=0):
     model = Model(inputs=Inputs, outputs=predictions)
     return model
 
+def three_layer_model_batch_norm(Inputs, nclasses, l1Reg=0):
+    """
+    Two hidden layers model
+    """
+    x = Dense(64, kernel_initializer='lecun_uniform', 
+              name='fc1_relu', W_regularizer=l1(l1Reg))(Inputs)
+    x = BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn1')(x)
+    x = Activation(activation='relu', name='relu1')(x)
+              
+    x = Dense(32, kernel_initializer='lecun_uniform', 
+              name='fc2_relu', W_regularizer=l1(l1Reg))(x)
+    x = BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn2')(x)
+    x = Activation(activation='relu', name='relu2')(x)
+    
+    x = Dense(32, kernel_initializer='lecun_uniform', 
+              name='fc3_relu', W_regularizer=l1(l1Reg))(x)
+    x = BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn3')(x)
+    x = Activation(activation='relu', name='relu3')(x)
+    
+    x = Dense(nclasses, kernel_initializer='lecun_uniform', 
+                        name='output_softmax', W_regularizer=l1(l1Reg))(x)
+    x = BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn4')(x)
+    
+    predictions = Activation(activation='softmax', name='softmax')(x)
+
+    model = Model(inputs=Inputs, outputs=predictions)
+    return model
+
 def three_layer_model_binary(Inputs, nclasses, l1Reg=0):
     """
     Three hidden layers model
     """
-     
+    
     model = Sequential()
     
-    model.add(BinaryDense(64, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='fc1', input_shape=(16,)))
+    model.add(BinaryDense(64, H=1, use_bias=False, name='fc1', input_shape=(16,)))
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn1'))
     model.add(Activation(binary_tanh, name='act{}'.format(1)))
     
-    model.add(BinaryDense(32, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='fc2'))  
+    model.add(BinaryDense(32, H=1, use_bias=False, name='fc2'))  
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn2'))
     model.add(Activation(binary_tanh, name='act{}'.format(2)))  
     
-    model.add(BinaryDense(32, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='fc3'))   
+    model.add(BinaryDense(32, H=1, use_bias=False, name='fc3'))   
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn3'))
     model.add(Activation(binary_tanh, name='act{}'.format(3)))  
         
-    model.add(BinaryDense(nclasses, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='output'))
+    model.add(BinaryDense(nclasses, H=1, use_bias=False, name='output'))
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn'))
     
     return model                                                       
@@ -105,19 +133,19 @@ def three_layer_model_ternary(Inputs, nclasses, l1Reg=0):
      
     model = Sequential()
     
-    model.add(TernaryDense(64, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='fc1', input_shape=(16,)))
+    model.add(TernaryDense(256, H=1, kernel_lr_multiplier='Glorot', use_bias=False, name='fc1', input_shape=(16,)))
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn1'))
     model.add(Activation(ternary_tanh, name='act{}'.format(1)))     
     
-    model.add(TernaryDense(32, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='fc2'))  
+    model.add(TernaryDense(128, H=1, kernel_lr_multiplier='Glorot', use_bias=False, name='fc2'))  
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn2'))
     model.add(Activation(ternary_tanh, name='act{}'.format(2)))  
     
-    model.add(TernaryDense(32, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='fc3'))   
+    model.add(TernaryDense(128, H=1, kernel_lr_multiplier='Glorot', use_bias=False, name='fc3'))   
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn3'))
     model.add(Activation(ternary_tanh, name='act{}'.format(3)))      
     
-    model.add(TernaryDense(nclasses, H='Glorot', kernel_lr_multiplier='Glorot', use_bias=False, name='output'))
+    model.add(TernaryDense(nclasses, H=1, kernel_lr_multiplier='Glorot', use_bias=False, name='output'))
     model.add(BatchNormalization(epsilon=1e-6, momentum=0.9, name='bn'))
     
     return model 
@@ -257,6 +285,28 @@ def conv1d_model_constraint(Inputs, nclasses, l1Reg=0, h5fName=None):
                         kernel_constraint = zero_some_weights(binary_tensor=h5f['output_softmax'][()].tolist()))(x)
     model = Model(inputs=Inputs, outputs=predictions)
     print model.summary()
+    return model
+
+def conv1d_small_model(Inputs, nclasses, l1Reg=0):
+    """
+    Conv1D small model, kernel size 4
+    """
+    x = Conv1D(filters=3, kernel_size=4, strides=1, padding='same',
+               kernel_initializer='he_normal', use_bias=True, name='conv1_relu',
+               activation = 'relu', W_regularizer=l1(l1Reg))(Inputs)
+    x = Conv1D(filters=2, kernel_size=4, strides=2, padding='same',
+               kernel_initializer='he_normal', use_bias=True, name='conv2_relu',
+               activation = 'relu', W_regularizer=l1(l1Reg))(x)
+    x = Conv1D(filters=1, kernel_size=4, strides=3, padding='same',
+               kernel_initializer='he_normal', use_bias=True, name='conv3_relu',
+               activation = 'relu', W_regularizer=l1(l1Reg))(x)
+    x = Flatten()(x)
+    x = Dense(5, activation='relu', kernel_initializer='lecun_uniform', 
+              name='fc1_relu', W_regularizer=l1(l1Reg))(x)
+    predictions = Dense(nclasses, activation='softmax', kernel_initializer='lecun_uniform', 
+                        name='output_softmax', W_regularizer=l1(l1Reg))(x)
+    model = Model(inputs=Inputs, outputs=predictions)
+    print(model.summary())
     return model
 
 def conv2d_model(Inputs, nclasses, l1Reg=0):
