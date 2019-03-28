@@ -97,7 +97,7 @@ def makeRoc(features_val, labels, labels_val, model, outputDir):
     plt.legend(loc='upper left')
     plt.figtext(0.25, 0.90,'hls4ml',fontweight='bold', wrap=True, horizontalalignment='right', fontsize=14)
     #plt.figtext(0.35, 0.90,'preliminary', style='italic', wrap=True, horizontalalignment='center', fontsize=14) 
-    plt.savefig('%s/ROC.pdf'%(options.outputDir))
+    plt.savefig('%s/ROC.png'%(options.outputDir))
     return predict_test
 
     
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     model.load_weights(options.inputModel)
     '''
 
-    plot_model(model,show_shapes=1,to_file=options.outputDir+'/model.pdf')
+    plot_model(model,show_shapes=1,to_file=options.outputDir+'/model.png')
     model.summary()
 
     y_predict = makeRoc(X_test, labels, y_test, model, options.outputDir)
@@ -176,7 +176,7 @@ if __name__ == "__main__":
                               title='Confusion matrix')
     plt.figtext(0.28, 0.90,'hls4ml',fontweight='bold', wrap=True, horizontalalignment='right', fontsize=14)
     #plt.figtext(0.38, 0.90,'preliminary', style='italic', wrap=True, horizontalalignment='center', fontsize=14) 
-    plt.savefig(options.outputDir+"/confusion_matrix.pdf")
+    plt.savefig(options.outputDir+"/confusion_matrix.png")
     # Plot normalized confusion matrix
     plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=[l.replace('j_','') for l in labels], normalize=True,
@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     plt.figtext(0.28, 0.90,'hls4ml',fontweight='bold', wrap=True, horizontalalignment='right', fontsize=14)
     #plt.figtext(0.38, 0.90,'preliminary', style='italic', wrap=True, horizontalalignment='center', fontsize=14) 
-    plt.savefig(options.outputDir+"/confusion_matrix_norm.pdf")
+    plt.savefig(options.outputDir+"/confusion_matrix_norm.png")
         
     import json
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         plt.legend()
         plt.xlabel('epoch')
         plt.ylabel('loss')
-        plt.savefig(options.outputDir+"/loss.pdf")
+        plt.savefig(options.outputDir+"/loss.png")
 
         plt.figure()
         val_acc = np.asarray(myDictOfLists[b'val_acc'])
@@ -216,6 +216,6 @@ if __name__ == "__main__":
         plt.legend()
         plt.xlabel('epoch')
         plt.ylabel('accuracy')
-        plt.savefig(options.outputDir+"/acc.pdf")
+        plt.savefig(options.outputDir+"/acc.png")
 
         

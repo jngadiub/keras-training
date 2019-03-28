@@ -45,6 +45,7 @@ def get_features(options, yamlConfig):
     # Convert to dataframe
     features_labels_df = pd.DataFrame(treeArray,columns=list(set(features+labels)))
     features_labels_df = features_labels_df.drop_duplicates()
+    #features_labels_df.reindex(np.random.permutation(features_labels_df.index))
 
     features_df = features_labels_df[features]
     labels_df = features_labels_df[labels]
@@ -174,5 +175,5 @@ if __name__ == "__main__":
                             lr_minimum=0.0000001,
                             outputDir=options.outputDir)
 
-    keras_model.fit(X_train_val, y_train_val, batch_size = 1024, epochs = 500,
+    keras_model.fit(X_train_val, y_train_val, batch_size = 1024, epochs = 100,
                     validation_split = 0.25, shuffle = True, callbacks = callbacks.callbacks)
